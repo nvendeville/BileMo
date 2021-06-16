@@ -6,42 +6,45 @@ use App\Repository\CompanyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use JetBrains\PhpStorm\Pure;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-#[ORM\Entity(repositoryClass: CompanyRepository::class)]
+/**
+ * @ORM\Entity(repositoryClass=CompanyRepository::class)
+ */
 class Company
 {
-    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    #[Groups(['api_get'])]
-    private int $id;
+    /**
+     * @ORM\Id
+     * @ORM\GeneratedValue
+     * @ORM\Column(type="integer")
+     * @Groups({"api_get"})
+     */
+    private $id;
 
-    #[ORM\Column(length: 255)]
-    #[Groups(['api_get'])]
-    private string $name;
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Groups({"api_get"})
+     */
+    private $name;
 
-    #[ORM\Column(
-        length: 255,
-        nullable: true
-    )]
-    #[Groups(['api_get'])]
-    private ?string $address;
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"api_get"})
+     */
+    private $address;
 
-    #[ORM\Column(
-        length: 255,
-        nullable: true
-    )]
-    #[Groups(['api_get'])]
-    private ?string $siret;
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Groups({"api_get"})
+     */
+    private $siret;
 
-    #[ORM\OneToMany(
-        mappedBy: "company",
-        targetEntity: User::class,
-        orphanRemoval: true
-    )]
-    private Collection $users;
+    /**
+     * @ORM\OneToMany(targetEntity=User::class, mappedBy="company", orphanRemoval=true)
+     * @Groups({"api_get"})
+     */
+    private $users;
 
-    #[Pure]
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -50,6 +53,13 @@ class Company
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(string $id): self
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getName(): ?string
@@ -69,7 +79,7 @@ class Company
         return $this->address;
     }
 
-    public function setAddress(string $address): self
+    public function setAddress(?string $address): self
     {
         $this->address = $address;
 
@@ -98,15 +108,10 @@ class Company
 
     public function addUser(User $user): self
     {
-        if ($this->users == null) {
-            $this->users[] = $user;
-            $user->setCompany($this);
-        }
-        /*
         if (!$this->users->contains($user)) {
             $this->users[] = $user;
             $user->setCompany($this);
-        }*/
+        }
 
         return $this;
     }

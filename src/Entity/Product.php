@@ -35,10 +35,10 @@ class Product
     /**
      * @ORM\Column(type="datetime")
      */
-    private $created;
+    private $added;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime")
      */
     private $updated;
 
@@ -50,6 +50,12 @@ class Product
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getName(): ?string
@@ -88,14 +94,14 @@ class Product
         return $this;
     }
 
-    public function getCreated(): ?\DateTimeInterface
+    public function getAdded(): ?\DateTimeInterface
     {
-        return $this->created;
+        return $this->added;
     }
 
-    public function setCreated(\DateTimeInterface $created): self
+    public function setAdded(\DateTimeInterface $added): self
     {
-        $this->created = $created;
+        $this->added = $added;
 
         return $this;
     }
@@ -105,7 +111,7 @@ class Product
         return $this->updated;
     }
 
-    public function setUpdated(?\DateTimeInterface $updated): self
+    public function setUpdated(\DateTimeInterface $updated): self
     {
         $this->updated = $updated;
 

@@ -8,54 +8,53 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
-#[ORM\Entity(repositoryClass: UserRepository::class)]
+/**
+ * @ORM\Entity(repositoryClass=UserRepository::class)
+ */
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    #[Groups(['api_get'])]
-    private int $id;
+    /**
+     * @ORM\Id
+     * @ORM\GeneratedValue
+     * @ORM\Column(type="integer")
+     *@Groups({"api_get"})
+     */
+    private $id;
 
-    #[ORM\Column(
-        length: 180,
-        unique: true
-    )]
-    #[Groups(['api_get'])]
-    private string $email;
+    /**
+     * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups({"api_get"})
+     */
+    private $email;
 
-    #[ORM\Column(type: 'string')]
-    #[Groups(['api_get'])]
-    private string $roles;
+    /**
+     * @ORM\Column(type="string")
+     * @Groups({"api_get"})
+     */
+    private $roles;
 
-    #[ORM\Column(length: 255)]
-    #[Groups(['api_get'])]
-    private string $password;
+    /**
+     * @var string The hashed password
+     * @ORM\Column(type="string")
+     */
+    private $password;
 
-    #[ORM\Column(length: 255)]
-    #[Groups(['api_get'])]
-    private ?string $firstname;
-
-    #[ORM\Column(length: 255)]
-    #[Groups(['api_get'])]
-    private string $lastname;
-
-    #[ORM\Column(
-        length: 255,
-        unique: true
-    )]
-    #[Groups(['api_get'])]
-    private ?string $phone;
-
-    #[ORM\ManyToOne(
-        targetEntity: Company::class,
-        inversedBy: "users"
-    )]
-    #[ORM\Column(length: 255)]
-    #[ORM\JoinColumn(nullable: false)]
-    private Company $company;
+    /**
+     * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $company;
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(string $id): self
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getEmail(): ?string
@@ -70,18 +69,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
+    /**
+     * @see UserInterface
+     */
     public function getRoles(): string
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        //$roles[] = 'ROLE_USER';
-return $this->roles;
-        //return array_unique($roles);
+        $roles = 'ROLE_USER';
+
+        return $roles;
     }
 
     public function setRoles(string $roles): self
@@ -91,6 +98,9 @@ return $this->roles;
         return $this;
     }
 
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
     public function getPassword(): string
     {
         return $this->password;
@@ -103,11 +113,20 @@ return $this->roles;
         return $this;
     }
 
+    /**
+     * Returning a salt is only needed, if you are not using a modern
+     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
+     *
+     * @see UserInterface
+     */
     public function getSalt(): ?string
     {
         return null;
     }
 
+    /**
+     * @see UserInterface
+     */
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
@@ -119,48 +138,12 @@ return $this->roles;
         // TODO: Implement getUsername() method.
     }
 
-    public function getFirstname(): ?string
-    {
-        return $this->firstname;
-    }
-
-    public function setFirstname(string $firstname): self
-    {
-        $this->firstname = $firstname;
-
-        return $this;
-    }
-
-    public function getLastname(): ?string
-    {
-        return $this->lastname;
-    }
-
-    public function setLastname(string $lastname): self
-    {
-        $this->lastname = $lastname;
-
-        return $this;
-    }
-
-    public function getPhone(): ?string
-    {
-        return $this->phone;
-    }
-
-    public function setPhone(?string $phone): self
-    {
-        $this->phone = $phone;
-
-        return $this;
-    }
-
     public function getCompany(): ?Company
     {
         return $this->company;
     }
 
-    public function setCompany(Company $company): self
+    public function setCompany(?Company $company): self
     {
         $this->company = $company;
 

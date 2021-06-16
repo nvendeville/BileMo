@@ -1,0 +1,22 @@
+nelmio_api_doc:
+    areas: # to filter documented areas
+        path_patterns:
+            - ^/ # Accepts routes under /api except /api/doc
+    documentation:
+        servers:
+            [
+                { url: https://localhost:8000 }
+            ]
+        info:
+            title: Bilmo
+            description: This is an awesome app!
+            version: 1.0.0
+        #securityDefinitions:
+         #   Bearer:
+               #   type: apiKey
+                #  description: 'Value: Bearer {jwt}'
+                 # name: Authorization
+                  #in: header
+        security:
+            - Bearer: []
+
