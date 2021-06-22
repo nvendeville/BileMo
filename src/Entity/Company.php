@@ -6,10 +6,12 @@ use App\Repository\CompanyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as JMS;
 
 /**
  * @ORM\Entity(repositoryClass=CompanyRepository::class)
+ * @JMS\ExclusionPolicy("ALL")
  */
 class Company
 {
@@ -17,31 +19,30 @@ class Company
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"api_get"})
+     * @JMS\Expose
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"api_get"})
+     * @JMS\Expose
      */
     private $name;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups({"api_get"})
+     * @JMS\Expose
      */
     private $address;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"api_get"})
+     * @JMS\Expose
      */
     private $siret;
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="company", orphanRemoval=true)
-     * @Groups({"api_get"})
      */
     private $users;
 

@@ -6,10 +6,25 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Annotations as OA;
+use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as JMS;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @OA\Schema(
+ *     description="User Model",
+ *     title="User Model"
+ * )
+ * @Hateoas\Relation(
+ *     "self",
+ *     href = @Hateoas\Route(
+ *          "api_get_users_in_company",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
+ * )
+ * @JMS\ExclusionPolicy("ALL")
  */
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -17,31 +32,54 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     *@Groups({"api_get"})
+     * @JMS\Expose
+     * @OA\Property(
+     *     format="int64",
+     *     description="ID",
+     *     title="ID"
+     * )
+     * @var integer
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
-     * @Groups({"api_get"})
+     * @JMS\Expose
+     * @OA\Property(
+     *     format="email",
+     *     description="Email",
+     *     title="Email"
+     * )
+     *
+     * @var string
      */
     private $email;
 
     /**
      * @ORM\Column(type="string")
-     * @Groups({"api_get"})
+     * @JMS\Expose
      */
     private $roles;
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @OA\Property(
+     *     format="int64",
+     *     description="Password",
+     *     title="Password",
+     *     maximum=255
+     * )
      */
     private $password;
 
     /**
      * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
      * @ORM\JoinColumn(nullable=false)
+     * @OA\Property(
+     *     description="Company relation",
+     *     title="Companie"
+     * )
      */
     private $company;
 

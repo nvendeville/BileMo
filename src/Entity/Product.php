@@ -4,9 +4,16 @@ namespace App\Entity;
 
 use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Hateoas\Configuration\Annotation as Hateoas;
+use OpenApi\Annotations as OA;
+
 
 /**
  * @ORM\Entity(repositoryClass=ProductRepository::class)
+ * @OA\Schema(
+ *     description="Product Model",
+ *     title="Product Model"
+ * )
  */
 class Product
 {
