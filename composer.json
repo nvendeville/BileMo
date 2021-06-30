@@ -19,6 +19,7 @@
         "sensio/framework-extra-bundle": "^6.1",
         "symfony/asset": "5.4.*",
         "symfony/console": "5.4.*",
+        "symfony/doctrine-bridge": "5.4.*",
         "symfony/dotenv": "5.4.*",
         "symfony/expression-language": "5.4.*",
         "symfony/flex": "^1.13",
@@ -88,6 +89,8 @@
         }
     },
     "require-dev": {
-        "symfony/maker-bundle": "^1.31"
+        "symfony/maker-bundle": "^1.31",
+        "symfony/stopwatch": "5.4.x-dev",
+        "symfony/web-profiler-bundle": "5.4.x-dev"
     }
 }

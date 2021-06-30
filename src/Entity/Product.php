@@ -5,14 +5,33 @@ namespace App\Entity;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Hateoas\Configuration\Annotation as Hateoas;
-use OpenApi\Annotations as OA;
+use JMS\Serializer\Annotation as JMS;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
 /**
  * @ORM\Entity(repositoryClass=ProductRepository::class)
- * @OA\Schema(
- *     description="Product Model",
- *     title="Product Model"
+ * @UniqueEntity("reference")
+ * @JMS\ExclusionPolicy("ALL")
+ * @Hateoas\Relation(
+ *     "delete",
+ *     href = @Hateoas\Route(
+ *          "api_delete_product",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     ),
+ *      exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(not is_granted('ROLE_ADMIN'))"
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *     "update",
+ *     href = @Hateoas\Route(
+ *          "api_update_product",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
  * )
  */
 class Product
@@ -21,21 +40,26 @@ class Product
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @JMS\Expose
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @JMS\Expose
      */
     private $name;
 
     /**
      * @ORM\Column(type="text", nullable=true)
+     * @JMS\Expose
      */
     private $description;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @JMS\Expose
+     * @Assert\NotBlank
      */
     private $reference;
 
@@ -51,6 +75,7 @@ class Product
 
     /**
      * @ORM\Column(type="float", nullable=true)
+     * @JMS\Expose
      */
     private $price;
 

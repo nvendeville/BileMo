@@ -14,13 +14,12 @@ fos_rest:
         serialize_null: true
 #    allowed_methods_listener:  true
 #    routing_loader: true
-#    view:
-#        view_response_listener:  true
-#    exception:
+#   exception:
+#        enabled: true
 #        codes:
-#            App\Exception\MyException: 403
+#            App\Exception\RessourceValidationException: 400
 #        messages:
-#            App\Exception\MyException: Forbidden area.
+#            App\Exception\RessourceValidationException: true
     format_listener:
         rules:
             - { path: ^/api, prefer_extension: true, fallback_format: json, priorities: [ json, html ] }

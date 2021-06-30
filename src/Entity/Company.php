@@ -8,10 +8,30 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Hateoas\Configuration\Annotation as Hateoas;
 use JMS\Serializer\Annotation as JMS;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=CompanyRepository::class)
+ * @UniqueEntity("siret")
  * @JMS\ExclusionPolicy("ALL")
+ * @Hateoas\Relation(
+ *     "delete",
+ *     href = @Hateoas\Route(
+ *          "api_delete_company",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
+ * )
+ * @Hateoas\Relation(
+ *     "update",
+ *     href = @Hateoas\Route(
+ *          "api_update_company",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
+ * )
+ *
  */
 class Company
 {
@@ -26,6 +46,7 @@ class Company
     /**
      * @ORM\Column(type="string", length=255)
      * @JMS\Expose
+     * @Assert\NotBlank
      */
     private $name;
 
@@ -38,6 +59,7 @@ class Company
     /**
      * @ORM\Column(type="string", length=255)
      * @JMS\Expose
+     * @Assert\NotBlank
      */
     private $siret;
 

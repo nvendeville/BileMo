@@ -9,17 +9,24 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use OpenApi\Annotations as OA;
 use Hateoas\Configuration\Annotation as Hateoas;
 use JMS\Serializer\Annotation as JMS;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
- * @OA\Schema(
- *     description="User Model",
- *     title="User Model"
+ * @UniqueEntity("email")
+ * @Hateoas\Relation(
+ *     "delete",
+ *     href = @Hateoas\Route(
+ *          "api_delete_user",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
  * )
  * @Hateoas\Relation(
- *     "self",
+ *     "update",
  *     href = @Hateoas\Route(
- *          "api_get_users_in_company",
+ *          "api_update_user",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
  *     )
@@ -33,25 +40,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
      * @JMS\Expose
-     * @OA\Property(
-     *     format="int64",
-     *     description="ID",
-     *     title="ID"
-     * )
-     * @var integer
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
      * @JMS\Expose
-     * @OA\Property(
-     *     format="email",
-     *     description="Email",
-     *     title="Email"
-     * )
-     *
-     * @var string
+     * @Assert\NotBlank
      */
     private $email;
 
@@ -62,24 +57,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $roles;
 
     /**
-     * @var string The hashed password
      * @ORM\Column(type="string")
-     * @OA\Property(
-     *     format="int64",
-     *     description="Password",
-     *     title="Password",
-     *     maximum=255
-     * )
+     * @Assert\NotBlank
+     * @JMS\Expose
      */
     private $password;
 
     /**
      * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
      * @ORM\JoinColumn(nullable=false)
-     * @OA\Property(
-     *     description="Company relation",
-     *     title="Companie"
-     * )
+     * @JMS\Expose
      */
     private $company;
 
@@ -88,7 +75,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function setId(string $id): self
+    public function setId(int $id): self
     {
         $this->id = $id;
 
