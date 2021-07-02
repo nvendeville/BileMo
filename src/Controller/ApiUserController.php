@@ -21,6 +21,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class ApiUserController extends AbstractFOSRestController
 {
@@ -28,6 +29,7 @@ class ApiUserController extends AbstractFOSRestController
      * @FOS\Post("/api/companies/{id}/users", name = "api_create_user_in_company", requirements = {"id"="\d+"})
      * @FOS\View(StatusCode = 201)
      * @ParamConverter("user", converter="fos_rest.request_body")
+     * @IsGranted("ROLE_ADMIN")
      * @OA\Post(
      *     path="/api/companies/{id}/users",
      *     tags={"Utilisateurs"},
@@ -65,6 +67,7 @@ class ApiUserController extends AbstractFOSRestController
             return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
         }
         $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
+        $user->setRoles(["ROLE_USER"]);
         $company->addUser($user);
         $entityManager->persist($user);
         $entityManager->flush();
