@@ -26,12 +26,11 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 class ApiUserController extends AbstractFOSRestController
 {
     /**
-     * @FOS\Post("/api/companies/{id}/users", name = "api_create_user_in_company", requirements = {"id"="\d+"})
+     * @FOS\Post("/api/users", name = "api_create_user")
      * @FOS\View(StatusCode = 201)
      * @ParamConverter("user", converter="fos_rest.request_body")
-     * @IsGranted("ROLE_ADMIN")
      * @OA\Post(
-     *     path="/api/companies/{id}/users",
+     *     path="/api/users",
      *     tags={"Utilisateurs"},
      *     summary="Crée un nouvel utilisateur dans une companie donnée",
      *     description="Cette route crée un nouvel utilisateur dans une companie donnée",
@@ -56,9 +55,10 @@ class ApiUserController extends AbstractFOSRestController
      * )
      */
     public function createUser(
-        Company $company,
         User $user,
+        UserRepository $userRepository,
         EntityManagerInterface $entityManager,
+        Request $request,
         UserPasswordHasherInterface $hasher,
         ConstraintViolationList $violations
     ): User|Response
@@ -66,14 +66,17 @@ class ApiUserController extends AbstractFOSRestController
         if(count($violations))  {
             return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
         }
+
+        if($this->getUser()->getRoles() != 'ROLE_SUPER_ADMIN' && $request->toArray()["role"] == "admin") {
+            return $this->json("Vous n'êtes pas autorisé à créer un administrateur");
+        }
         $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
-        $user->setRoles(["ROLE_USER"]);
-        $company->addUser($user);
+        $user->setRoles(['ROLE_'. strtoupper($request->toArray()["role"])]);
+        $user->setCompany($userRepository->findOneBy(['email' => $this->getUser()->getUserIdentifier()])->getCompany());
         $entityManager->persist($user);
         $entityManager->flush();
 
         return $user;
-
     }
 
     /**
@@ -422,6 +425,56 @@ class ApiUserController extends AbstractFOSRestController
         $entityManager->flush();
 
         return $this->handleView($this->view($user, 204));
+
+    }
+
+
+    /**
+     * @FOS\Post("/api/companies/{id}/users", name = "api_create_user_in_company", requirements = {"id"="\d+"})
+     * @FOS\View(StatusCode = 201)
+     * @ParamConverter("user", converter="fos_rest.request_body")
+     * @OA\Post(
+     *     path="/api/companies/{id}/users",
+     *     tags={"Utilisateurs"},
+     *     summary="Crée un nouvel utilisateur dans une companie donnée",
+     *     description="Cette route crée un nouvel utilisateur dans une companie donnée",
+     *     operationId="createUser",
+     * @OA\Response(
+     *     response=201,
+     *     description="Voici la fiche de l'utilisateur créé",
+     *     @OA\JsonContent(ref="#/components/schemas/User")
+     *      ),
+     * @OA\Response(
+     *     response=400,
+     *     description="Invalid Request"
+     *      ),
+     * @OA\Response(
+     *     response=404,
+     *     description="No Route found"
+     *      ),
+     * @OA\Response(
+     *     response=500,
+     *     description="Server Error"
+     *      ),
+     * )
+     */
+    public function monUser(
+        Company $company,
+        User $user,
+        EntityManagerInterface $entityManager,
+        UserPasswordHasherInterface $hasher,
+        ConstraintViolationList $violations
+    ): User|Response
+    {
+        if(count($violations))  {
+            return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
+        }
+        $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
+        $user->setCompany($company);
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return $user;
 
     }
 }

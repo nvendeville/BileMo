@@ -21,12 +21,14 @@ use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\OffsetRepresentation;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class ApiProductController extends AbstractFOSRestController
 {
     /**
-     * @FOS\Post ("/api/products", name="api_add_products", methods={"POST"})
+     * @FOS\Post ("/api/products", name="api_create_product", methods={"POST"})
      * @FOS\View(StatusCode = 201)
+     * @IsGranted ("ROLE_SUPER_ADMIN")
      * @ParamConverter("product", converter="fos_rest.request_body")
      * @OA\Post(
      *     path="/api/products",
@@ -53,7 +55,7 @@ class ApiProductController extends AbstractFOSRestController
      *      ),
      * )
      */
-    public function addProduct(
+    public function createProduct(
         Product $product,
         EntityManagerInterface $entityManager,
         ConstraintViolationList $violations
@@ -138,6 +140,7 @@ class ApiProductController extends AbstractFOSRestController
      * @FOS\Put("/api/products/{id}", name="api_update_product")
      * @FOS\View(StatusCode = 200)
      * @ParamConverter("product", converter="fos_rest.request_body")
+     * @IsGranted ("ROLE_SUPER_ADMIN")
      * @OA\Put(
      *     path="/api/products/{id}",
      *     tags={"Produits"},
@@ -194,6 +197,7 @@ class ApiProductController extends AbstractFOSRestController
     /**
      * @FOS\Delete ("/api/products/{id}", name = "api_delete_product", requirements = {"id"="\d+"})
      * @ParamConverter ("product", class="App:Product")
+     * @IsGranted ("ROLE_SUPER_ADMIN")
      * @OA\Delete(
      *     path="/api/products/{id}",
      *     tags={"Produits"},

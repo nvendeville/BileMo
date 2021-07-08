@@ -2,10 +2,6 @@ security:
   encoders:
     App\Entity\User:
       algorithm: auto
-
-  # https://symfony.com/doc/current/security/experimental_authenticators.html
-  enable_authenticator_manager: true
-  # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
   providers:
     # used to reload user from session & other features (e.g. switch_user)
     app_user_provider:
@@ -19,7 +15,7 @@ security:
     login:
       pattern: ^/api/login
       stateless: true
-      anonymous: false
+      anonymous: true
       json_login:
         check_path: /api/login_check
         success_handler: lexik_jwt_authentication.handler.authentication_success
@@ -27,18 +23,19 @@ security:
     api:
       pattern: ^/api
       stateless: true
+      anonymous: true
+      provider: app_user_provider
       guard:
         authenticators:
           - lexik_jwt_authentication.jwt_token_authenticator
+    main:
+      anonymous: true
     classic:
       guard:
         authenticators:
           - App\Security\LoginFormAuthenticator
       logout:
         path: app_logout
-
-
-      # …
 
       # activate different ways to authenticate
       # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -50,4 +47,6 @@ security:
   # Note: Only the *first* access control that matches will be used
   access_control:
     - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
+    - { path: ^/api/doc, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/api, roles: IS_AUTHENTICATED_FULLY}
+

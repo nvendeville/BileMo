@@ -11,9 +11,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
 /**
- * @ORM\Entity(repositoryClass=ProductRepository::class)
- * @UniqueEntity("reference")
- * @JMS\ExclusionPolicy("ALL")
  * @Hateoas\Relation(
  *     "delete",
  *     href = @Hateoas\Route(
@@ -33,51 +30,52 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          absolute = true
  *     )
  * )
+ * @Hateoas\Relation(
+ *     "get all products",
+ *     href = @Hateoas\Route(
+ *          "api_get_products",
+ *          absolute = true
+ *     )
+ * )
+ * @Hateoas\Relation(
+ *     "create",
+ *     href = @Hateoas\Route(
+ *          "api_create_product",
+ *          absolute = true
+ *     )
+ * )
  */
+#[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[UniqueEntity('reference')]
+#[JMS\ExclusionPolicy(['all'])]
 class Product
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @JMS\Expose
-     */
-    private $id;
+    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
+    #[JMS\Expose]
+    private ?int $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     * @JMS\Expose
-     */
-    private $name;
+    #[ORM\Column(length: 255)]
+    #[JMS\Expose]
+    private ?string $name;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     * @JMS\Expose
-     */
-    private $description;
+    #[ORM\Column(length: 255)]
+    #[JMS\Expose]
+    private ?string $description;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     * @JMS\Expose
-     * @Assert\NotBlank
-     */
-    private $reference;
+    #[ORM\Column(length: 255)]
+    #[JMS\Expose]
+    #[Assert\NotBlank]
+    private string $reference;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
-    private $added;
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $added;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
-    private $updated;
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $updated;
 
-    /**
-     * @ORM\Column(type="float", nullable=true)
-     * @JMS\Expose
-     */
-    private $price;
+    #[ORM\Column(type: 'float')]
+    #[JMS\Expose]
+    private ?float $price;
 
     public function getId(): ?int
     {

@@ -6,15 +6,28 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use OpenApi\Annotations as OA;
 use Hateoas\Configuration\Annotation as Hateoas;
 use JMS\Serializer\Annotation as JMS;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * @ORM\Entity(repositoryClass=UserRepository::class)
- * @UniqueEntity("email")
+
+ * @Hateoas\Relation(
+ *     "get all users",
+ *     href = @Hateoas\Route(
+ *          "api_get_users",
+ *          absolute = true
+ *     )
+ * )
+ * @Hateoas\Relation(
+ *     "get a user",
+ *     href = @Hateoas\Route(
+ *          "api_get_user",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
+ * )
  * @Hateoas\Relation(
  *     "delete",
  *     href = @Hateoas\Route(
@@ -31,44 +44,44 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          absolute = true
  *     )
  * )
- * @JMS\ExclusionPolicy("ALL")
+ * * @Hateoas\Relation(
+ *     "create",
+ *     href = @Hateoas\Route(
+ *          "api_create_user",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
+ * )
  */
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[UniqueEntity('email')]
+#[JMS\ExclusionPolicy(['all'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @JMS\Expose
-     */
-    private $id;
+    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
+    #[JMS\Expose]
+    private ?int $id;
 
-    /**
-     * @ORM\Column(type="string", length=180, unique=true)
-     * @JMS\Expose
-     * @Assert\NotBlank
-     */
-    private $email;
+    #[ORM\Column(length: 180)]
+    #[JMS\Expose]
+    #[Assert\NotBlank]
+    private string $email;
 
-    /**
-     * @ORM\Column(type="json")
-     * @JMS\Expose
-     */
-    private $roles = [];
+    #[ORM\Column(type: 'json')]
+    #[JMS\Expose]
+    private array $roles = [];
 
-    /**
-     * @ORM\Column(type="string")
-     * @Assert\NotBlank
-     * @JMS\Expose
-     */
-    private $password;
+    #[ORM\Column(length: 255)]
+    #[JMS\Expose]
+    #[Assert\NotBlank]
+    private string $password;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Company::class, inversedBy="users")
-     * @ORM\JoinColumn(nullable=false)
-     * @JMS\Expose
-     */
-    private $company;
+    #[ORM\ManyToOne(
+        targetEntity: 'Company',
+        inversedBy: 'users'
+    )]
+    #[ORM\JoinColumn(nullable: false)]
+    private Company $company;
 
     public function getId(): ?int
     {
@@ -82,7 +95,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -94,19 +107,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return $this->email;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -123,9 +128,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): string
     {
         return $this->password;
@@ -138,38 +140,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * Returning a salt is only needed, if you are not using a modern
-     * hashing algorithm (e.g. bcrypt or sodium) in your security.yaml.
-     *
-     * @see UserInterface
-     */
     public function getSalt(): ?string
     {
         return null;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
 
-    public function getUsername()
+    public function getUsername(): string
     {
         return $this->email;
 
     }
 
-    public function getCompany(): ?Company
+    public function getCompany(): Company
     {
         return $this->company;
     }
 
-    public function setCompany(?Company $company): self
+    public function setCompany(Company $company): self
     {
         $this->company = $company;
 

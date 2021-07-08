@@ -12,9 +12,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * @ORM\Entity(repositoryClass=CompanyRepository::class)
- * @UniqueEntity("siret")
- * @JMS\ExclusionPolicy("ALL")
  * @Hateoas\Relation(
  *     "delete",
  *     href = @Hateoas\Route(
@@ -31,42 +28,59 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          absolute = true
  *     )
  * )
- *
+ * @Hateoas\Relation(
+ *   "get a company",
+ *   href = @Hateoas\Route(
+ *        "api_get_company",
+ *        parameters = { "id" = "expr(object.getId())" },
+ *        absolute = true
+ *   )
+ * )
+ * @Hateoas\Relation(
+ *   "get all companies",
+ *   href = @Hateoas\Route(
+ *        "api_get_companies",
+ *        absolute = true
+ *   )
+ * )
+ * @Hateoas\Relation(
+ *   "create",
+ *   href = @Hateoas\Route(
+ *        "api_create_company",
+ *        parameters = { "id" = "expr(object.getId())" },
+ *        absolute = true
+ *   )
+ * )
  */
+#[ORM\Entity(repositoryClass: CompanyRepository::class)]
+#[UniqueEntity('siret')]
+#[JMS\ExclusionPolicy(['all'])]
 class Company
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     * @JMS\Expose
-     */
-    private $id;
+    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
+    #[JMS\Expose]
+    private ?int $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     * @JMS\Expose
-     * @Assert\NotBlank
-     */
-    private $name;
+    #[ORM\Column(length: 255)]
+    #[JMS\Expose]
+    #[Assert\NotBlank]
+    private string $name;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     * @JMS\Expose
-     */
-    private $address;
+    #[ORM\Column(length: 255)]
+    #[JMS\Expose]
+    private ?string $address;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     * @JMS\Expose
-     * @Assert\NotBlank
-     */
-    private $siret;
+    #[ORM\Column(length: 255)]
+    #[JMS\Expose]
+    #[Assert\NotBlank]
+    private string $siret;
 
-    /**
-     * @ORM\OneToMany(targetEntity=User::class, mappedBy="company", orphanRemoval=true)
-     */
-    private $users;
+    #[ORM\OneToMany(
+        mappedBy: 'company',
+        targetEntity: 'User',
+        orphanRemoval: true
+    )]
+    private Collection $users;
 
     public function __construct()
     {
@@ -85,7 +99,7 @@ class Company
         return $this;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -109,7 +123,7 @@ class Company
         return $this;
     }
 
-    public function getSiret(): ?string
+    public function getSiret(): string
     {
         return $this->siret;
     }
@@ -121,9 +135,6 @@ class Company
         return $this;
     }
 
-    /**
-     * @return Collection|User[]
-     */
     public function getUsers(): Collection
     {
         return $this->users;

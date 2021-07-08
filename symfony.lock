@@ -1,4 +1,7 @@
 {
+    "composer/xdebug-handler": {
+        "version": "2.0.1"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -157,6 +160,9 @@
     "nikic/php-parser": {
         "version": "v4.10.5"
     },
+    "pdepend/pdepend": {
+        "version": "2.9.1"
+    },
     "phpdocumentor/reflection-common": {
         "version": "2.2.0"
     },
@@ -166,8 +172,14 @@
     "phpdocumentor/type-resolver": {
         "version": "1.4.0"
     },
+    "phpmd/phpmd": {
+        "version": "2.10.1"
+    },
     "phpstan/phpdoc-parser": {
         "version": "0.5.5"
+    },
+    "phpstan/phpstan": {
+        "version": "0.12.91"
     },
     "psr/cache": {
         "version": "2.0.0"
@@ -194,6 +206,18 @@
         },
         "files": [
             "./config/packages/sensio_framework_extra.yaml"
+        ]
+    },
+    "squizlabs/php_codesniffer": {
+        "version": "3.6",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "3.6",
+            "ref": "1019e5c08d4821cb9b77f4891f8e9c31ff20ac6f"
+        },
+        "files": [
+            "./phpcs.xml.dist"
         ]
     },
     "symfony/asset": {

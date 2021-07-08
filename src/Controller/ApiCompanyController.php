@@ -17,6 +17,8 @@ use FOS\RestBundle\Controller\Annotations\View;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+
 
 class ApiCompanyController extends AbstractFOSRestController
 {
@@ -24,6 +26,7 @@ class ApiCompanyController extends AbstractFOSRestController
      * @FOS\Post("/api/companies", name="api_create_company")
      * @FOS\View(StatusCode = 201)
      * @ParamConverter("company", converter="fos_rest.request_body")
+     * @isGranted("ROLE_SUPER_ADMIN", message="Vous n'avez pas l'autorisation de créer une nouvelle companie")
      * @OA\Post(
      *     path="/api/companies",
      *     tags={"Companie"},
@@ -49,7 +52,7 @@ class ApiCompanyController extends AbstractFOSRestController
      *      ),
      * )
      */
-    public function addCompany(
+    public function createCompany(
         Company $company,
         EntityManagerInterface $entityManager,
         ConstraintViolationList $violations
@@ -66,6 +69,7 @@ class ApiCompanyController extends AbstractFOSRestController
 
     /**
      * @FOS\Get("/api/companies", name = "api_get_companies")
+     * @isGranted("ROLE_SUPER_ADMIN", message="Vous n'avez pas l'autorisation de visualiser la liste des companies")
      * @OA\Get(
      *     path="/api/companies",
      *     tags={"Companie"},
@@ -91,12 +95,11 @@ class ApiCompanyController extends AbstractFOSRestController
      *      ),
      * )
      */
-    public function getCompanies(CompanyRepository $companyRepository, CacheInterface $cache): Response|CompanyRepository
+    public function getCompanies(CompanyRepository $companyRepository, CacheInterface $cache): Response
     {
         return $cache->get('result-companies', function (ItemInterface $item) use ($companyRepository) {
             $item->expiresAfter(3600);
-            $this->handleView($this->view($companyRepository->findAll()));
-            return $companyRepository;
+            return $this->handleView($this->view($companyRepository->findAll()));
         });
     }
 
@@ -129,11 +132,19 @@ class ApiCompanyController extends AbstractFOSRestController
      */
     public function getCompany(CompanyRepository $companyRepository, int $id): Response
     {
+        if((in_array('ROLE_SUPER_ADMIN', $this->getUser()->getRoles()))){
+            return $this->handleView($this->view($companyRepository->find($id)));
+        }
+        if($this->getUser()->getCompany()->getId() != $id)
+        {
+            return $this->json("Vous ne pouvez accéder à la fiche d'une companie autre que celle à laquelle vous êtes affilié(e)");
+        }
         return $this->handleView($this->view($companyRepository->find($id)));
     }
 
     /**
      * @FOS\Put ("/api/companies/{id}", name = "api_update_company", requirements = {"id"="\d+"})
+     * @FOS\View(StatusCode = 200)
      * @ParamConverter("company", converter="fos_rest.request_body")
      * @OA\Put(
      *     path="/api/companies/{id}",
@@ -163,27 +174,35 @@ class ApiCompanyController extends AbstractFOSRestController
     public function updateCompany(
         Company $company,
         CompanyRepository $companyRepository,
-        EntityManagerInterface $entityManager
-    ): Company
+        EntityManagerInterface $entityManager,
+        int $id
+    ): Company|Response
     {
-        $companyToFlush = $companyRepository->find($company->getId());
+        $companyToFlush = $companyRepository->find($id);
 
-        if(!$companyToFlush){
-            $entityManager->persist($company);
+        if((in_array('ROLE_SUPER_ADMIN', $this->getUser()->getRoles())) ||
+            ((in_array('ROLE_ADMIN', $this->getUser()->getRoles())) && $this->getUser()->getCompany()->getId() == $id)){
+            if(!$companyToFlush){
+                $entityManager->persist($company);
+                $entityManager->flush();
+
+                return $companyRepository->find($company->getId());
+            } else {
+                $companyToFlush->setName($company->getName());
+                $companyToFlush->setAddress($company->getAddress());
+                $companyToFlush->setSiret($company->getSiret());
+                $entityManager->flush();
+
+                return $companyToFlush;
+            }
         }
-        $companyToFlush->setId($company->getId());
-        $companyToFlush->setName($company->getName());
-        $companyToFlush->setAddress($company->getAddress());
-        $companyToFlush->setSiret($company->getSiret());
-
-        $entityManager->flush();
-
-        return $companyToFlush;
+            return $this->json("Vous ne pouvez modifier la fiche d'une companie");
     }
 
     /**
      * @FOS\Delete ("/api/companies/{id}", name = "api_delete_company", requirements = {"id"="\d+"})
      * @ParamConverter ("company", class="App:Company")
+     * @isGranted("ROLE_SUPER_ADMIN", message="Vous n'avez pas l'autorisation de supprimer une companie")
      * @OA\Delete(
      *     path="/api/companies/{id}",
      *     tags={"Companie"},
