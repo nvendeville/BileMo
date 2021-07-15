@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Company;
 use App\Entity\User;
+use App\Repository\CompanyRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
@@ -56,32 +57,40 @@ class ApiUserController extends AbstractFOSRestController
      */
     public function createUser(
         User $user,
-        UserRepository $userRepository,
+        CompanyRepository $companyRepository,
         EntityManagerInterface $entityManager,
         Request $request,
         UserPasswordHasherInterface $hasher,
         ConstraintViolationList $violations
-    ): User|Response
-    {
-        if(count($violations))  {
+    ): User|Response {
+        if (count($violations)) {
             return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
         }
+        if (
+            (
+                in_array(USER::SUPERADMIN, $this->getUser()->getRoles())
+                || (
+                    in_array(USER::ADMIN, $this->getUser()->getRoles())
+                    && $this->getUser()->getCompany()->getId() === $request->toArray()["company"]
+                    && $request->toArray()["role"] === 'user'
+                )
+            )
+        ) {
+            $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
+            $user->setRoles(['ROLE_' . strtoupper($request->toArray()["role"])]);
+            $user->setCompany($companyRepository->find($request->toArray()["company"]));
+            $entityManager->persist($user);
+            $entityManager->flush();
 
-        if($this->getUser()->getRoles() != 'ROLE_SUPER_ADMIN' && $request->toArray()["role"] == "admin") {
-            return $this->json("Vous n'êtes pas autorisé à créer un administrateur");
+            return $user;
         }
-        $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
-        $user->setRoles(['ROLE_'. strtoupper($request->toArray()["role"])]);
-        $user->setCompany($userRepository->findOneBy(['email' => $this->getUser()->getUserIdentifier()])->getCompany());
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        return $user;
+        return $this->json("Vous n'êtes pas autorisé à créer cet utilisateur");
     }
 
     /**
      * @FOS\Get("/api/users", name = "api_get_users")
      * @FOS\View(statusCode = 200)
+     * @isGranted("ROLE_SUPER_ADMIN", message="Vous n'avez pas l'autorisation de visualiser tous les utilisateurs")
      * @FOS\QueryParam(
      *     name="limit",
      *     requirements="\d+",
@@ -98,7 +107,8 @@ class ApiUserController extends AbstractFOSRestController
      *     path="/api/users",
      *     tags={"Utilisateurs"},
      *     summary="Liste tous les utilisateurs de l'application.",
-     *     description="Cette route retourne l'ensemble des utilisateurs de l'application BileMo sans leur mot de passe",
+     *     description="Cette route retourne l'ensemble des utilisateurs de l'application BileMo sans leur mot de
+     *      passe",
      *     operationId="getUsers",
      * @OA\Response(
      *     response=200,
@@ -121,29 +131,31 @@ class ApiUserController extends AbstractFOSRestController
      */
     public function getUsers(CacheInterface $cache, UserRepository $userRepository, ParamFetcher $paramFetcher): mixed
     {
-        return $cache->get('result-paginated-users', function(ItemInterface $item) use ($paramFetcher, $userRepository) {
-            $item->expiresAfter(3600);
-            $paginatedUsers = new OffsetRepresentation(
-                new CollectionRepresentation(
-                    $userRepository->findBy(
-                        [],
-                        [],
-                        $paramFetcher->get('limit'),
-                        $paramFetcher->get('offset')
-                    )
-                ),
-                'api_get_users',
-                array(),
-                $paramFetcher->get('offset'),
-                $paramFetcher->get('limit'),
-                count($userRepository->findAll()),
-                null,
-                null,
-                true
-            );
-            return $this->handleView($this->view($paginatedUsers, 200));
-        });
-
+        return $cache->get(
+            'result-paginated-users' . '-' . $paramFetcher->get('limit') . '-' . $paramFetcher->get('offset'),
+            function (ItemInterface $item) use ($paramFetcher, $userRepository) {
+                $item->expiresAfter(3600);
+                $paginatedUsers = new OffsetRepresentation(
+                    new CollectionRepresentation(
+                        $userRepository->findBy(
+                            [],
+                            [],
+                            $paramFetcher->get('limit'),
+                            $paramFetcher->get('offset')
+                        )
+                    ),
+                    'api_get_users',
+                    array(),
+                    $paramFetcher->get('offset'),
+                    $paramFetcher->get('limit'),
+                    count($userRepository->findAll()),
+                    null,
+                    null,
+                    true
+                );
+                return $this->handleView($this->view($paginatedUsers, 200));
+            }
+        );
     }
 
     /**
@@ -153,7 +165,8 @@ class ApiUserController extends AbstractFOSRestController
      *     path="/api/companies/{id}/users",
      *     tags={"Utilisateurs"},
      *     summary="Liste les utilisateurs d'une companie.",
-     *     description="Cette route retourne l'ensemble des utilisateurs de l'application BileMo d'une companie en particuliers et sans leur mot de passe",
+     *     description="Cette route retourne l'ensemble des utilisateurs de l'application BileMo d'une companie en
+     *      particuliers et sans leur mot de passe",
      *     operationId="getUsersPerCompany",
      *      @OA\Response(
      *          response=200,
@@ -173,12 +186,21 @@ class ApiUserController extends AbstractFOSRestController
      *           ),
      *)
      */
-    public function getUsersPerCompany(
+    public function getUsersInCompany(
         UserRepository $userRepository,
-        Company $company
-    ): Response
-    {
-        return $this->handleview($this->view($userRepository->find($company->getId()), 200));
+        Company $company,
+        int $id
+    ): Response {
+        if (
+            in_array(USER::SUPERADMIN, $this->getUser()->getRoles())
+            || (
+                in_array(USER::ADMIN, $this->getUser()->getRoles())
+                && $this->getUser()->getCompany()->getId() === $id
+            )
+        ) {
+            return $this->handleview($this->view($userRepository->findBy(['company' => $company->getId()]), 200));
+        }
+        return $this->json("Vous n'êtes pas autorisé à visualiser ces utilisateurs");
     }
 
     /**
@@ -208,9 +230,20 @@ class ApiUserController extends AbstractFOSRestController
      *      ),
      * )
      */
-    public function getUserPerId(UserRepository $userRepository, int $id): Response
+    public function getUserPerId(User $user): Response
     {
-        return $this->handleView($this->view($userRepository->find($id), 200));
+        if (
+            $this->getUser()->getId() === $user->getId()
+            ||
+            in_array(USER::SUPERADMIN, $this->getUser()->getRoles())
+            || (
+                in_array(USER::ADMIN, $this->getUser()->getRoles())
+                && $this->getUser()->getCompany()->getId() === $user->getCompany()->getId()
+            )
+        ) {
+            return $this->handleView($this->view($user, 200));
+        }
+        return $this->json("Vous n'êtes pas autorisé à visualiser cet utilisateur");
     }
 
     /**
@@ -244,14 +277,14 @@ class ApiUserController extends AbstractFOSRestController
      * )
      */
     public function updateUserInCompany(
-        Company $company,
         User $user,
         UserRepository $userRepository,
+        CompanyRepository $companyRepository,
+        Company $company,
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $hasher
-    ): Response
-    {
+    ): Response {
         /*foreach ($data as $key => $value){
             if($key && !empty($value)) {
                 $method = 'set'.ucfirst($key);
@@ -261,15 +294,13 @@ class ApiUserController extends AbstractFOSRestController
 
         $userToFlush = $userRepository->find($request->get('user_id'));
 
-        if(!$userToFlush){
+        if (!$userToFlush) {
             $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
             $company->addUser($user);
             $entityManager->persist($user);
             $entityManager->flush();
 
             return $this->handleView($this->view($user, 200));
-
-
         }
         $userToFlush->setId($request->get('user_id'));
         $userToFlush->setEmail($user->getEmail());
@@ -278,7 +309,6 @@ class ApiUserController extends AbstractFOSRestController
         $entityManager->flush();
 
         return $this->handleView($this->view($userToFlush, 200));
-
     }
 
     /**
@@ -313,86 +343,48 @@ class ApiUserController extends AbstractFOSRestController
     public function updateUser(
         User $user,
         UserRepository $userRepository,
+        CompanyRepository $companyRepository,
         Request $request,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $hasher
-    ): Response
-    {
-        /*foreach ($data as $key => $value){
-            if($key && !empty($value)) {
-                $method = 'set'.ucfirst($key);
-                $user->$method($value);
+    ): Response {
+        if (
+            in_array(USER::SUPERADMIN, $this->getUser()->getRoles())
+            || (
+                in_array(USER::ADMIN, $this->getUser()->getRoles())
+                && $this->getUser()->getCompany()->getId() === $request->toArray()["company"]
+                && $request->toArray()["role"] === 'user'
+            )
+        ) {
+            $userToFlush = $userRepository->find($request->get('id'));
+
+            if (!$userToFlush) {
+                $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
+                $user->setRoles(['ROLE_' . strtoupper($request->toArray()["role"])]);
+                $user->setCompany($companyRepository->find($request->toArray()["company"]));
+                $entityManager->persist($user);
+                $entityManager->flush();
+
+                return $this->handleView($this->view($user, 200));
+            } else {
+                $userToFlush->setId($request->get('id'));
+                $userToFlush->setEmail($user->getEmail());
+                $userToFlush->setRoles(['ROLE_' . strtoupper($request->toArray()["role"])]);
+                $userToFlush->setCompany($companyRepository->find($request->toArray()["company"]));
+                $userToFlush->setPassword($hasher->hashPassword($user, $user->getPassword()));
+                $entityManager->flush();
+
+                return $this->handleView($this->view($userToFlush, 200));
             }
-        }*/
-
-        $userToFlush = $userRepository->find($request->get('id'));
-
-        if(!$userToFlush){
-            $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            return $this->handleView($this->view($user, 200));
-
-
         }
-        $userToFlush->setId($request->get('user_id'));
-        $userToFlush->setEmail($user->getEmail());
-        $userToFlush->setPassword($hasher->hashPassword($user, $user->getPassword()));
-        $entityManager->flush();
-
-        return $this->handleView($this->view($userToFlush, 200));
-
+        return $this->json("Vous n'êtes pas autorisé à modifier cet utilisateur");
     }
 
     /**
-     * @FOS\Delete ("/api/users/{id}", name = "api_delete_user", requirements = {"id"="\d+"})
+     * @FOS\Delete("/api/users/{id}", name="api_delete_user", requirements = {"id"="\d+"})
      * @ParamConverter ("user", class="App:User")
      * @OA\Delete(
      *     path="/api/users/{id}",
-     *     tags={"Utilisateurs"},
-     *     summary="Supprime un utilisateur",
-     *     description="Cette route supprime le profil complet d'un utilisateur",
-     *     operationId="deleteUserPerId",
-     * @OA\Response(
-     *     response=204,
-     *     description="Utilisateur supprimé",
-     *     @OA\JsonContent(ref="#/components/schemas/User")
-     *      ),
-     * @OA\Response(
-     *     response=400,
-     *     description="Invalid Request"
-     *      ),
-     * @OA\Response(
-     *     response=404,
-     *     description="No Route found"
-     *      ),
-     * @OA\Response(
-     *     response=500,
-     *     description="Server Error"
-     *      ),
-     * )
-     */
-    public function deleteUserPerId(
-        User $user,
-        EntityManagerInterface $entityManager
-    ): Response
-    {
-        $entityManager->remove($user);
-        $entityManager->flush();
-
-        return $this->handleView($this->view($user, 204));
-
-
-    }
-
-    /**
-     * @FOS\Delete("/api/companies/{company_id}/users/{user_id}", name="api_delete_user_in_company")
-     * @FOS\View(StatusCode = 200)
-     * @ParamConverter("user", class="App:User", options={"id"= "user_id"})
-     * @ParamConverter("company", class="App:Company", options={"id"= "company_id"})
-     * @OA\Delete(
-     *     path="/api/companies/{company_id}/users/{user_id}",
      *     tags={"Utilisateurs"},
      *     summary="Supprime la fiche d'un utilisateur",
      *     description="Cette route supprime la fiche d'un utilisateur",
@@ -416,65 +408,22 @@ class ApiUserController extends AbstractFOSRestController
      *      ),
      * )
      */
-    public function deleteUserInCompany(
+    public function deleteUser(
         User $user,
         EntityManagerInterface $entityManager
-    ): Response
-    {
-        $entityManager->remove($user);
-        $entityManager->flush();
+    ): Response {
+        if (
+            in_array(USER::SUPERADMIN, $this->getUser()->getRoles())
+            || (
+                in_array(USER::ADMIN, $this->getUser()->getRoles())
+                && $this->getUser()->getCompany()->getId() === $user->getCompany()->getId()
+            )
+        ) {
+            $entityManager->remove($user);
+            $entityManager->flush();
 
-        return $this->handleView($this->view($user, 204));
-
-    }
-
-
-    /**
-     * @FOS\Post("/api/companies/{id}/users", name = "api_create_user_in_company", requirements = {"id"="\d+"})
-     * @FOS\View(StatusCode = 201)
-     * @ParamConverter("user", converter="fos_rest.request_body")
-     * @OA\Post(
-     *     path="/api/companies/{id}/users",
-     *     tags={"Utilisateurs"},
-     *     summary="Crée un nouvel utilisateur dans une companie donnée",
-     *     description="Cette route crée un nouvel utilisateur dans une companie donnée",
-     *     operationId="createUser",
-     * @OA\Response(
-     *     response=201,
-     *     description="Voici la fiche de l'utilisateur créé",
-     *     @OA\JsonContent(ref="#/components/schemas/User")
-     *      ),
-     * @OA\Response(
-     *     response=400,
-     *     description="Invalid Request"
-     *      ),
-     * @OA\Response(
-     *     response=404,
-     *     description="No Route found"
-     *      ),
-     * @OA\Response(
-     *     response=500,
-     *     description="Server Error"
-     *      ),
-     * )
-     */
-    public function monUser(
-        Company $company,
-        User $user,
-        EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $hasher,
-        ConstraintViolationList $violations
-    ): User|Response
-    {
-        if(count($violations))  {
-            return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
+            return $this->handleView($this->view($user, 204));
         }
-        $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
-        $user->setCompany($company);
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        return $user;
-
+        return $this->json("Vous n'êtes pas autorisé à supprimer cet utilisateur");
     }
 }

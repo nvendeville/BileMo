@@ -9,7 +9,6 @@ use JMS\Serializer\Annotation as JMS;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
-
 /**
  * @Hateoas\Relation(
  *     "delete",
@@ -17,10 +16,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          "api_delete_product",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *     ),
- *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(not is_granted('ROLE_ADMIN'))"
- *      )
+ *     )
  * )
  * @Hateoas\Relation(
  *     "update",
@@ -36,6 +32,13 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          "api_get_products",
  *          absolute = true
  *     )
+ * @Hateoas\Relation(
+ *     "get one product",
+ *     href = @Hateoas\Route(
+ *          "api_get_products",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute = true
+ *     )
  * )
  * @Hateoas\Relation(
  *     "create",
@@ -44,26 +47,34 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          absolute = true
  *     )
  * )
+ * @JMS\ExclusionPolicy("ALL")
  */
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[UniqueEntity('reference')]
-#[JMS\ExclusionPolicy(['all'])]
 class Product
 {
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    #[JMS\Expose]
     private ?int $id;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 255)]
-    #[JMS\Expose]
     private ?string $name;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 255)]
-    #[JMS\Expose]
     private ?string $description;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 255)]
-    #[JMS\Expose]
     #[Assert\NotBlank]
     private string $reference;
 
@@ -73,8 +84,10 @@ class Product
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $updated;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(type: 'float')]
-    #[JMS\Expose]
     private ?float $price;
 
     public function getId(): ?int

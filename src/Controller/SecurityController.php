@@ -15,7 +15,7 @@ class SecurityController extends AbstractController
      * @Route(name="api_login", path="/api/login_check")
      * @return JsonResponse
      */
-    public function api_login(): JsonResponse
+    public function apiLogin(): JsonResponse
     {
         $user = $this->getUser();
 
@@ -41,7 +41,7 @@ class SecurityController extends AbstractController
     /**
      * @Route("/logout", name="app_logout", methods={"GET"})
      */
-    public function logout()
+    public function logout(): \Exception
     {
         // controller can be blank: it will never be executed!
         throw new \Exception('Don\'t forget to activate logout in security.yaml');
