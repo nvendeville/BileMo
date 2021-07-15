@@ -19,10 +19,10 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
-
 class ApiCompanyController extends AbstractFOSRestController
 {
-     /**
+
+    /**
      * @FOS\Post("/api/companies", name="api_create_company")
      * @FOS\View(StatusCode = 201)
      * @ParamConverter("company", converter="fos_rest.request_body")
@@ -56,9 +56,8 @@ class ApiCompanyController extends AbstractFOSRestController
         Company $company,
         EntityManagerInterface $entityManager,
         ConstraintViolationList $violations
-    ): Company|Response
-    {
-        if(count($violations))  {
+    ): Company|Response {
+        if (count($violations)) {
             return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
         }
         $entityManager->persist($company);
@@ -132,12 +131,13 @@ class ApiCompanyController extends AbstractFOSRestController
      */
     public function getCompany(CompanyRepository $companyRepository, int $id): Response
     {
-        if((in_array('ROLE_SUPER_ADMIN', $this->getUser()->getRoles()))){
+        if ((in_array(USER::SUPERADMIN, $this->getUser()->getRoles()))) {
             return $this->handleView($this->view($companyRepository->find($id)));
         }
-        if($this->getUser()->getCompany()->getId() != $id)
-        {
-            return $this->json("Vous ne pouvez accéder à la fiche d'une companie autre que celle à laquelle vous êtes affilié(e)");
+        if ($this->getUser()->getCompany()->getId() != $id) {
+            return $this->json(
+                "Vous ne pouvez accéder à la fiche de cette companie"
+            );
         }
         return $this->handleView($this->view($companyRepository->find($id)));
     }
@@ -176,17 +176,19 @@ class ApiCompanyController extends AbstractFOSRestController
         CompanyRepository $companyRepository,
         EntityManagerInterface $entityManager,
         int $id
-    ): Company|Response
-    {
+    ): Company|Response {
         $companyToFlush = $companyRepository->find($id);
 
-        if((in_array('ROLE_SUPER_ADMIN', $this->getUser()->getRoles())) ||
-            ((in_array('ROLE_ADMIN', $this->getUser()->getRoles())) && $this->getUser()->getCompany()->getId() == $id)){
-            if(!$companyToFlush){
+        if (
+            (in_array(USER::SUPERADMIN, $this->getUser()->getRoles()))
+            || ((in_array(USER::ADMIN, $this->getUser()->getRoles()))
+            && $this->getUser()->getCompany()->getId() == $id)
+        ) {
+            if (!$companyToFlush) {
                 $entityManager->persist($company);
                 $entityManager->flush();
 
-                return $companyRepository->find($company->getId());
+                return $company;
             } else {
                 $companyToFlush->setName($company->getName());
                 $companyToFlush->setAddress($company->getAddress());
@@ -196,7 +198,7 @@ class ApiCompanyController extends AbstractFOSRestController
                 return $companyToFlush;
             }
         }
-            return $this->json("Vous ne pouvez modifier la fiche d'une companie");
+            return $this->json("Vous ne pouvez modifier la fiche de cette companie");
     }
 
     /**
@@ -231,12 +233,10 @@ class ApiCompanyController extends AbstractFOSRestController
     public function deleteCompany(
         Company $company,
         EntityManagerInterface $entityManager
-    ): Response
-    {
+    ): Response {
         $entityManager->remove($company);
         $entityManager->flush();
 
         return $this->handleView($this->view($company, 204));
-
     }
 }

@@ -52,27 +52,40 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          absolute = true
  *     )
  * )
+ * @JMS\ExclusionPolicy("ALL")
  */
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[UniqueEntity('email')]
 #[JMS\ExclusionPolicy(['all'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    public const SUPERADMIN = 'ROLE_SUPER_ADMIN';
+    const ADMIN = 'ROLE_ADMIN';
+    const USER = 'ROLE_USER';
+
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    #[JMS\Expose]
     private ?int $id;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 180)]
-    #[JMS\Expose]
     #[Assert\NotBlank]
     private string $email;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(type: 'json')]
-    #[JMS\Expose]
     private array $roles = [];
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 255)]
-    #[JMS\Expose]
     #[Assert\NotBlank]
     private string $password;
 
@@ -145,7 +158,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return null;
     }
 
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
@@ -154,7 +167,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUsername(): string
     {
         return $this->email;
-
     }
 
     public function getCompany(): Company

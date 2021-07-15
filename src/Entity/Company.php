@@ -51,27 +51,35 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *        absolute = true
  *   )
  * )
+ * @JMS\ExclusionPolicy("ALL")
  */
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
 #[UniqueEntity('siret')]
-#[JMS\ExclusionPolicy(['all'])]
 class Company
 {
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    #[JMS\Expose]
     private ?int $id;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 255)]
-    #[JMS\Expose]
     #[Assert\NotBlank]
     private string $name;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 255)]
-    #[JMS\Expose]
     private ?string $address;
 
+    /**
+     * @JMS\Expose
+     */
     #[ORM\Column(length: 255)]
-    #[JMS\Expose]
     #[Assert\NotBlank]
     private string $siret;
 
@@ -92,7 +100,7 @@ class Company
         return $this->id;
     }
 
-    public function setId(string $id): self
+    public function setId(int $id): self
     {
         $this->id = $id;
 
