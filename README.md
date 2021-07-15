@@ -8,9 +8,9 @@ Composer https://getcomposer.org/download/
 
 # install and run
 
-- **Step 1** : In your Terminal run ``git clone https://github.com/nvendeville/SnowTricks.git``
+- **Step 1** : In your Terminal run ``git clone https://github.com/nvendeville/BileMo.git``
 
-- **Step 2** : In your Terminal run ``cd SnowTricks``
+- **Step 2** : In your Terminal run ``cd BileMo``
 
 - **Step 3** : In your Terminal run the command ``composer install``
 
@@ -30,15 +30,7 @@ Composer https://getcomposer.org/download/
     
   - Set the db_user and/or db_password and/or db_name (name chosen on step 4)
 
-- **Step 7** : Update ``###> symfony/mailer ###`` in your file **.env**
-  
-  - Uncomment the MAILER_DSN related to your SMTP server
-  
-    MAILER_DSN=smtp://smtp_user:smtp_password@smtp_server:port
-  
-  - Set the smtp_user, smtp_password and smtp_server:port
-  
-- **Step 8** : In your Terminal, create and set your database 
+- **Step 7** : In your Terminal, create and set your database 
   - Run ``php bin/console doctrine:database:create`` give the name chosen on step 4
   - Run ``php bin/console make:migration``
   - Run ``php bin/console doctrine:migrations:migrate``
