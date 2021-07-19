@@ -46,6 +46,7 @@ class UserFixtures extends Fixture implements DependentFixtureInterface
             $user->setCompany($this->getReference(CompanyFixtures::COMPANY . random_int(0, 4)));
             $manager->persist($user);
         }
+
         $manager->flush();
     }
 
