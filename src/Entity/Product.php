@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ProductRepository;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use Hateoas\Configuration\Annotation as Hateoas;
 use JMS\Serializer\Annotation as JMS;
@@ -32,6 +33,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *          "api_get_products",
  *          absolute = true
  *     )
+ * )
  * @Hateoas\Relation(
  *     "get one product",
  *     href = @Hateoas\Route(
@@ -79,10 +81,10 @@ class Product
     private string $reference;
 
     #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $added;
+    private DateTime $added;
 
     #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $updated;
+    private DateTime $updated;
 
     /**
      * @JMS\Expose

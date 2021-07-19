@@ -33,8 +33,8 @@ class ApiUserController extends AbstractFOSRestController
      * @OA\Post(
      *     path="/api/users",
      *     tags={"Utilisateurs"},
-     *     summary="Crée un nouvel utilisateur dans une companie donnée",
-     *     description="Cette route crée un nouvel utilisateur dans une companie donnée",
+     *     summary="Crée un nouvel utilisateur",
+     *     description="Cette route crée un nouvel utilisateur",
      *     operationId="createUser",
      * @OA\Response(
      *     response=201,
@@ -246,72 +246,7 @@ class ApiUserController extends AbstractFOSRestController
         return $this->json("Vous n'êtes pas autorisé à visualiser cet utilisateur");
     }
 
-    /**
-     * @FOS\Put("/api/companies/{company_id}/users/{user_id}", name="api_update_user_in_company")
-     * @FOS\View(StatusCode = 200)
-     * @ParamConverter("user", converter="fos_rest.request_body", options={"id"= "user_id"})
-     * @ParamConverter("company", class="App:Company", options={"id"= "company_id"})
-     * @OA\Put(
-     *     path="/api/companies/{company_id}/users/{user_id}",
-     *     tags={"Utilisateurs"},
-     *     summary="Met à jour la fiche d'un utilisateur",
-     *     description="Cette route met à jour la fiche d'un utilisateur",
-     *     operationId="updateUserInCompany",
-     * @OA\Response(
-     *     response=200,
-     *     description="Voici la fiche mise à jour de l'utilisateur donné",
-     *     @OA\JsonContent(ref="#/components/schemas/User")
-     *      ),
-     * @OA\Response(
-     *     response=400,
-     *     description="Invalid Request"
-     *      ),
-     * @OA\Response(
-     *     response=404,
-     *     description="No Route found"
-     *      ),
-     * @OA\Response(
-     *     response=500,
-     *     description="Server Error"
-     *      ),
-     * )
-     */
-    public function updateUserInCompany(
-        User $user,
-        UserRepository $userRepository,
-        CompanyRepository $companyRepository,
-        Company $company,
-        Request $request,
-        EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $hasher
-    ): Response {
-        /*foreach ($data as $key => $value){
-            if($key && !empty($value)) {
-                $method = 'set'.ucfirst($key);
-                $user->$method($value);
-            }
-        }*/
-
-        $userToFlush = $userRepository->find($request->get('user_id'));
-
-        if (!$userToFlush) {
-            $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
-            $company->addUser($user);
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            return $this->handleView($this->view($user, 200));
-        }
-        $userToFlush->setId($request->get('user_id'));
-        $userToFlush->setEmail($user->getEmail());
-        $userToFlush->setPassword($hasher->hashPassword($user, $user->getPassword()));
-        $userToFlush->setCompany($company);
-        $entityManager->flush();
-
-        return $this->handleView($this->view($userToFlush, 200));
-    }
-
-    /**
+/**
      * @FOS\Put("/api/users/{id}", name="api_update_user")
      * @FOS\View(StatusCode = 200)
      * @ParamConverter("user", converter="fos_rest.request_body")
@@ -365,7 +300,7 @@ class ApiUserController extends AbstractFOSRestController
                 $entityManager->persist($user);
                 $entityManager->flush();
 
-                return $this->handleView($this->view($user, 200));
+                return $this->handleView($this->view($user, 201));
             } else {
                 $userToFlush->setId($request->get('id'));
                 $userToFlush->setEmail($user->getEmail());
@@ -422,7 +357,7 @@ class ApiUserController extends AbstractFOSRestController
             $entityManager->remove($user);
             $entityManager->flush();
 
-            return $this->handleView($this->view($user, 204));
+            return $this->handleView($this->view('', 204));
         }
         return $this->json("Vous n'êtes pas autorisé à supprimer cet utilisateur");
     }

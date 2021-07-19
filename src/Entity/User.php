@@ -60,8 +60,8 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     public const SUPERADMIN = 'ROLE_SUPER_ADMIN';
-    const ADMIN = 'ROLE_ADMIN';
-    const USER = 'ROLE_USER';
+    public const ADMIN = 'ROLE_ADMIN';
+    public const USER = 'ROLE_USER';
 
     /**
      * @JMS\Expose
