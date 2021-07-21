@@ -7,13 +7,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use OpenApi\Annotations as OA;
+
 
 class SecurityController extends AbstractController
 {
 
     /**
      * @Route(name="api_login", path="/api/login_check", methods={"POST"})
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/api/login_check",
+     *     tags={"Authentification"},
+     *     summary="Permet de s'authentifier en fournissant email et mot de passe",
+     *     description="Cette route permet de s'authentifier pour utiliser les API",
+     *     operationId="loginCheck"
+     * )
      */
     public function apiLogin(): JsonResponse
     {
