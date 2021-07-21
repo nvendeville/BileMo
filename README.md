@@ -1,7 +1,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/08d76aaa95b34640bba64b70c123383a)](https://www.codacy.com/gh/nvendeville/BileMo/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nvendeville/BileMo&amp;utm_campaign=Badge_Grade)
 
 # BileMo
-Développeur d'application - PHP / Symfony - Projet 7
+Exposer une API REST
 
 # prerequest
 Composer https://getcomposer.org/download/
@@ -34,8 +34,16 @@ Composer https://getcomposer.org/download/
   - Run ``php bin/console doctrine:database:create`` give the name chosen on step 4
   - Run ``php bin/console make:migration``
   - Run ``php bin/console doctrine:migrations:migrate``
+    
+- **Step 8** : In your Terminal, load the available set of data
   - Run ``php bin/console doctrine:fixtures:load``
+  - Available data :
+    - 1 SUPER_ADMIN for the Company 1
+    - 4 ADMIN for the 4 other companies
+    - 25 USERS assigned to the 4 companies
+    - The 30 created users have "coucou" as password
 
-- **Step 3** : In your Terminal run the command ``symfony serve``
+- **Step 9** : In your Terminal run the command ``symfony serve``
 
-- **Step 9** : From your browser go to http://locahost:8000
+- **Step 10** : From your browser go to http://locahost:8000/api/doc to open the swagguer documentation
+  (To manage the different endpoints, you can use Postman's tool)
