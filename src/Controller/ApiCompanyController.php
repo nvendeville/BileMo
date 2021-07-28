@@ -237,6 +237,6 @@ class ApiCompanyController extends AbstractFOSRestController
         $entityManager->remove($company);
         $entityManager->flush();
 
-        return $this->handleView($this->view($company, 204));
+        return $this->handleView($this->view('', 204));
     }
 }

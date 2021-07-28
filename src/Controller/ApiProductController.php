@@ -9,6 +9,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use FOS\RestBundle\Controller\Annotations as FOS;
 use FOS\RestBundle\Controller\Annotations\View;
@@ -22,6 +23,7 @@ use Hateoas\Representation\OffsetRepresentation;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Doctrine\DBAL\Exception\NotNullConstraintViolationException;
 
 class ApiProductController extends AbstractFOSRestController
 {
@@ -58,11 +60,14 @@ class ApiProductController extends AbstractFOSRestController
     public function createProduct(
         Product $product,
         EntityManagerInterface $entityManager,
-        ConstraintViolationList $violations
+        ConstraintViolationList $violations,
+        NotNullConstraintViolationException $notNull
     ): Response|Product {
-        if (count($violations)) {
-            return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
+        if (count($notNull)) {
+            return $this->json("Impossible de créer le produit. Merci de vérifier les données envoyées", 500);
         }
+        $product->setAdded();
+        $product->setUpdated();
         $entityManager->persist($product);
         $entityManager->flush();
 
@@ -115,7 +120,7 @@ class ApiProductController extends AbstractFOSRestController
         ParamFetcher $paramFetcher
     ): Response {
         return $cache->get(
-            'result-paginated-products' . '/' . $paramFetcher->get('limit') . '/' . $paramFetcher->get('offset'),
+            'result-paginated-products' . '-' . $paramFetcher->get('limit') . '-' . $paramFetcher->get('offset'),
             function (ItemInterface $item) use ($paramFetcher, $productRepository) {
                 $item->expiresAfter(3600);
                 $paginatedProducts = new OffsetRepresentation(
@@ -180,6 +185,8 @@ class ApiProductController extends AbstractFOSRestController
         $productToFlush = $productRepository->find($request->get('id'));
 
         if (!$productToFlush) {
+            $product->setAdded();
+            $product->setUpdated();
             $entityManager->persist($product);
             $entityManager->flush();
 
@@ -189,7 +196,7 @@ class ApiProductController extends AbstractFOSRestController
         $productToFlush->setName($product->getName());
         $productToFlush->setDescription($product->getDescription());
         $productToFlush->setReference($product->getReference());
-        $productToFlush->setUpdated(new \DateTime('now'));
+        $productToFlush->setUpdated();
         $productToFlush->setPrice($product->getPrice());
         $entityManager->flush();
 
@@ -227,11 +234,17 @@ class ApiProductController extends AbstractFOSRestController
      */
     public function deleteProduct(
         Product $product,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ProductRepository $productRepository
     ): Response {
-        $entityManager->remove($product);
-        $entityManager->flush();
+        if (!$productRepository->find($product->getId())) {
+            dd($productRepository->find($product->getId()));
+            throw new NotFoundHttpException();
+        } else {
+            $entityManager->remove($product);
+            $entityManager->flush();
 
-        return $this->handleView($this->view($product, 204));
+            return $this->handleView($this->view('', 204));
+        }
     }
 }
