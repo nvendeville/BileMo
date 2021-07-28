@@ -81,10 +81,10 @@ class Product
     private string $reference;
 
     #[ORM\Column(type: 'datetime')]
-    private DateTime $added;
+    private \DateTimeInterface $added;
 
     #[ORM\Column(type: 'datetime')]
-    private DateTime $updated;
+    private \DateTimeInterface $updated;
 
     /**
      * @JMS\Expose
@@ -143,10 +143,10 @@ class Product
     {
         return $this->added;
     }
-
-    public function setAdded(\DateTimeInterface $added): self
+    #[ORM\PrePersist]
+    public function setAdded(): self
     {
-        $this->added = $added;
+        $this->added = new \DateTime();
 
         return $this;
     }
@@ -155,10 +155,10 @@ class Product
     {
         return $this->updated;
     }
-
-    public function setUpdated(\DateTimeInterface $updated): self
+    #[ORM\PrePersist]
+    public function setUpdated(): self
     {
-        $this->updated = $updated;
+        $this->updated = new \DateTime();
 
         return $this;
     }
