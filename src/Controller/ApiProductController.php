@@ -240,6 +240,5 @@ class ApiProductController extends AbstractFOSRestController
         $entityManager->flush();
 
             return $this->handleView($this->view('', 204));
-        }
     }
 }
