@@ -234,15 +234,11 @@ class ApiProductController extends AbstractFOSRestController
      */
     public function deleteProduct(
         Product $product,
-        EntityManagerInterface $entityManager,
-        NotFoundHttpException $notFoundHttpException
+        EntityManagerInterface $entityManager
     ): Response {
-        if ($notFoundHttpException) {
-            return $this->handleView(($this->view('Le produit' . $product->getId() . ' n\existe pas ', 404)));
-        }
         $entityManager->remove($product);
         $entityManager->flush();
 
-        return $this->handleView($this->view('', 204));
+            return $this->handleView($this->view('', 204));
     }
 }
