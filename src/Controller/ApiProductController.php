@@ -234,15 +234,10 @@ class ApiProductController extends AbstractFOSRestController
      */
     public function deleteProduct(
         Product $product,
-        EntityManagerInterface $entityManager,
-        ProductRepository $productRepository
+        EntityManagerInterface $entityManager
     ): Response {
-        if (!$productRepository->find($product->getId())) {
-            dd($productRepository->find($product->getId()));
-            throw new NotFoundHttpException();
-        } else {
-            $entityManager->remove($product);
-            $entityManager->flush();
+        $entityManager->remove($product);
+        $entityManager->flush();
 
             return $this->handleView($this->view('', 204));
         }
