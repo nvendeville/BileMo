@@ -59,19 +59,20 @@ class Product
      * @JMS\Expose
      */
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    private ?int $id;
+    private int $id;
 
     /**
      * @JMS\Expose
      */
     #[ORM\Column(length: 255)]
-    private ?string $name;
+    #[Assert\NotBlank]
+    private string $name;
 
     /**
      * @JMS\Expose
      */
     #[ORM\Column(length: 255)]
-    private ?string $description;
+    private ?string $description = "";
 
     /**
      * @JMS\Expose
@@ -90,7 +91,7 @@ class Product
      * @JMS\Expose
      */
     #[ORM\Column(type: 'float')]
-    private ?float $price;
+    private ?float $price = 0;
 
     public function getId(): ?int
     {
@@ -103,7 +104,7 @@ class Product
         return $this;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }
@@ -143,6 +144,7 @@ class Product
     {
         return $this->added;
     }
+
     #[ORM\PrePersist]
     public function setAdded(): self
     {

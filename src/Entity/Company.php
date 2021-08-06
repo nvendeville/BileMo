@@ -61,7 +61,7 @@ class Company
      * @JMS\Expose
      */
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    private ?int $id;
+    private int $id;
 
     /**
      * @JMS\Expose
@@ -74,7 +74,7 @@ class Company
      * @JMS\Expose
      */
     #[ORM\Column(length: 255)]
-    private ?string $address;
+    private ?string $address = "";
 
     /**
      * @JMS\Expose
