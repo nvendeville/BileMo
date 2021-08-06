@@ -76,9 +76,15 @@ class ApiUserController extends AbstractFOSRestController
                 )
             )
         ) {
+            $company = $companyRepository->find($request->toArray()["company"]);
+
+            if (!$company) {
+                return $this->handleView($this->view('La companie n\'existe pas', Response::HTTP_BAD_REQUEST));
+            }
+
             $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
             $user->setRoles(['ROLE_' . strtoupper($request->toArray()["role"])]);
-            $user->setCompany($companyRepository->find($request->toArray()["company"]));
+            $user->setCompany($company);
             $entityManager->persist($user);
             $entityManager->flush();
 
@@ -205,6 +211,7 @@ class ApiUserController extends AbstractFOSRestController
 
     /**
      * @FOS\Get("/api/users/{id}", name = "api_get_user", requirements = {"id"="\d+"})
+     * @ParamConverter ("user", class="App:User")
      * @OA\Get(
      *     path="/api/users/{id}",
      *     tags={"Utilisateurs"},
@@ -292,11 +299,15 @@ class ApiUserController extends AbstractFOSRestController
             )
         ) {
             $userToFlush = $userRepository->find($request->get('id'));
+            $company = $companyRepository->find($request->toArray()["company"]);
 
+            if (!$company) {
+                return $this->handleView($this->view('La companie n\'existe pas', Response::HTTP_BAD_REQUEST));
+            }
             if (!$userToFlush) {
                 $user->setPassword($hasher->hashPassword($user, $user->getPassword()));
                 $user->setRoles(['ROLE_' . strtoupper($request->toArray()["role"])]);
-                $user->setCompany($companyRepository->find($request->toArray()["company"]));
+                $user->setCompany($company);
                 $entityManager->persist($user);
                 $entityManager->flush();
 
@@ -305,7 +316,7 @@ class ApiUserController extends AbstractFOSRestController
                 $userToFlush->setId($request->get('id'));
                 $userToFlush->setEmail($user->getEmail());
                 $userToFlush->setRoles(['ROLE_' . strtoupper($request->toArray()["role"])]);
-                $userToFlush->setCompany($companyRepository->find($request->toArray()["company"]));
+                $userToFlush->setCompany($company);
                 $userToFlush->setPassword($hasher->hashPassword($user, $user->getPassword()));
                 $entityManager->flush();
 

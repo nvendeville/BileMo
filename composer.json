@@ -48,7 +48,8 @@
         "symfony/yaml": "5.4.*",
         "twig/extra-bundle": "^3.3",
         "twig/twig": "^3.0",
-        "willdurand/hateoas-bundle": "^2.2.0"
+        "willdurand/hateoas-bundle": "^2.2.0",
+        "ext-http": "*"
     },
     "config": {
         "optimize-autoloader": true,

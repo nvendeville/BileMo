@@ -104,6 +104,7 @@ class ApiCompanyController extends AbstractFOSRestController
 
     /**
      * @FOS\Get("/api/companies/{id}", name = "api_get_company", requirements = {"id"="\d+"})
+     * @ParamConverter ("company", class="App:Company")
      * @OA\Get(
      *     path="/api/companies/{id}",
      *     tags={"Companie"},

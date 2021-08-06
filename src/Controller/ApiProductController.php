@@ -61,10 +61,9 @@ class ApiProductController extends AbstractFOSRestController
         Product $product,
         EntityManagerInterface $entityManager,
         ConstraintViolationList $violations,
-        NotNullConstraintViolationException $notNull
     ): Response|Product {
-        if (count($notNull)) {
-            return $this->json("Impossible de créer le produit. Merci de vérifier les données envoyées", 500);
+        if (count($violations)) {
+            return $this->handleView($this->view($violations, Response::HTTP_BAD_REQUEST));
         }
         $product->setAdded();
         $product->setUpdated();
@@ -147,7 +146,41 @@ class ApiProductController extends AbstractFOSRestController
     }
 
     /**
+     * @FOS\Get("/api/products/{id}", name = "api_get_product", requirements = {"id"="\d+"})
+     * @ParamConverter ("product", class="App:Product")
+     * @OA\Get(
+     *     path="/api/products/{id}",
+     *     tags={"Produits"},
+     *     summary="Donne la fiche d'un produit",
+     *     description="Cette route retourne la fiche d'un produit du catalogue",
+     *     operationId="getProduct",
+     * @OA\Response(
+     *     response=200,
+     *     description="Voici la la fiche du produit demandé",
+     *     @OA\JsonContent(ref="#/components/schemas/Product")
+     *      ),
+     * @OA\Response(
+     *     response=400,
+     *     description="Invalid Request"
+     *      ),
+     * @OA\Response(
+     *     response=404,
+     *     description="No Route found"
+     *      ),
+     * @OA\Response(
+     *     response=500,
+     *     description="Server Error"
+     *      ),
+     * )
+     */
+    public function getProduct(ProductRepository $productRepository, int $id): Response
+    {
+        return $this->handleView($this->view($productRepository->find($id)));
+    }
+
+    /**
      * @FOS\Put("/api/products/{id}", name="api_update_product")
+     * @ParamConverter ("product", class="App:Product")
      * @FOS\View(StatusCode = 200)
      * @ParamConverter("product", converter="fos_rest.request_body")
      * @IsGranted ("ROLE_SUPER_ADMIN", message="Vous n'avez pas l'autorisation de modifier un produit")

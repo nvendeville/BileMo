@@ -39,9 +39,9 @@ Composer https://getcomposer.org/download/
   - Run ``php bin/console doctrine:fixtures:load``
   - Available data :
     - 1 SUPER_ADMIN for the Company 1
-    - 4 ADMIN for the 4 other companies
-    - 25 USERS assigned to the 4 companies
-    - The 30 created users have "coucou" as password
+    - 5 ADMIN for the 5 other companies
+    - 25 USERS assigned to the 5 companies
+    - The 31 created users have "coucou" as password
 
 - **Step 9** : In your Terminal run the command ``symfony serve``
 

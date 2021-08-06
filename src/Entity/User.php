@@ -67,7 +67,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @JMS\Expose
      */
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
-    private ?int $id;
+    private int $id;
 
     /**
      * @JMS\Expose
@@ -96,7 +96,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: false)]
     private Company $company;
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
