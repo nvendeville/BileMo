@@ -137,7 +137,8 @@ class ApiCompanyController extends AbstractFOSRestController
         }
         if ($this->getUser()->getCompany()->getId() != $id) {
             return $this->json(
-                "Vous ne pouvez accéder à la fiche de cette companie"
+                "Vous ne pouvez accéder à la fiche de cette companie",
+                403
             );
         }
         return $this->handleView($this->view($companyRepository->find($id)));
@@ -199,7 +200,7 @@ class ApiCompanyController extends AbstractFOSRestController
                 return $companyToFlush;
             }
         }
-            return $this->json("Vous ne pouvez modifier la fiche de cette companie");
+            return $this->json("Vous ne pouvez modifier la fiche de cette companie", 403);
     }
 
     /**

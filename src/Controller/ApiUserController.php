@@ -206,7 +206,7 @@ class ApiUserController extends AbstractFOSRestController
         ) {
             return $this->handleview($this->view($userRepository->findBy(['company' => $company->getId()]), 200));
         }
-        return $this->json("Vous n'êtes pas autorisé à visualiser ces utilisateurs");
+        return $this->json("Vous n'êtes pas autorisé à visualiser ces utilisateurs", 403);
     }
 
     /**
@@ -250,7 +250,7 @@ class ApiUserController extends AbstractFOSRestController
         ) {
             return $this->handleView($this->view($user, 200));
         }
-        return $this->json("Vous n'êtes pas autorisé à visualiser cet utilisateur");
+        return $this->json("Vous n'êtes pas autorisé à visualiser cet utilisateur",403);
     }
 
 /**
@@ -323,7 +323,7 @@ class ApiUserController extends AbstractFOSRestController
                 return $this->handleView($this->view($userToFlush, 200));
             }
         }
-        return $this->json("Vous n'êtes pas autorisé à modifier cet utilisateur");
+        return $this->json("Vous n'êtes pas autorisé à modifier cet utilisateur",403);
     }
 
     /**
@@ -370,6 +370,6 @@ class ApiUserController extends AbstractFOSRestController
 
             return $this->handleView($this->view('', 204));
         }
-        return $this->json("Vous n'êtes pas autorisé à supprimer cet utilisateur");
+        return $this->json("Vous n'êtes pas autorisé à supprimer cet utilisateur",403);
     }
 }
